@@ -13,7 +13,7 @@ fn main() {
     let ditto = Ditto::builder()
     .with_root(Arc::new(PersistentRoot::from_current_exe().unwrap()))
         .with_identity(|ditto_root| {
-            let app_id = AppId::from_str("testaroo").unwrap();
+            let app_id = AppId::from_str("09fcd60d-69d2-414d-bc66-9c2475077258").unwrap();
             identity::OfflinePlayground::new(ditto_root, app_id)
         }).unwrap()
         .with_transport_config(|_identity| -> TransportConfig {
@@ -24,7 +24,8 @@ fn main() {
         }).unwrap()
         .build().unwrap();
     
-    ditto.set_offline_only_license_token("5b634c16-fdcc-41af-8b9a-894fbbbe61fe").unwrap();
+    let shared_token = std::env::var("DITTO_LICENSE").expect("No License Env Var provided"); 
+    ditto.set_offline_only_license_token(&shared_token).unwrap();
     ditto.start_sync();
 
     loop {

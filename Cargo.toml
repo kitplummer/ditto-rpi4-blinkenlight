@@ -1,5 +1,5 @@
 [package]
-name = "button_light"
+name = "ditto-rpi4-blinkenlight"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,6 +8,6 @@ edition = "2021"
 [dependencies]
 rust_gpiozero = "0.2.1"
 #dittolive-ditto = "=3.0.5"
-dittolive-ditto.path = "/home/kplummer/Code/ditto/rust"
+dittolive-ditto = { path = "/home/ubuntu/ditto/rust/dittolive-ditto" }
 structopt = "0.3"
 serde_json = "1.0"
