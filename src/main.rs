@@ -20,10 +20,10 @@ struct State {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
     env_logger::init();
+    debug!("Blink the Light!");
     let mut button = Button::new(17);
     let led = LED::new(23);
     led.off();
-    let mut state = false;
 
     let (sender, receiver) = channel::<(Vec<BoxedDocument>, LiveQueryEvent)>();
     let event_handler = move |documents: Vec<BoxedDocument>, event: LiveQueryEvent| {
@@ -47,23 +47,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     ditto.set_license_from_env("DITTO_LICENSE")?;
     ditto.start_sync()?;
-    debug!("Blink the Light!");
 
     let store = ditto.store();
     let collection = store.collection("button_state").unwrap();
-    let sub = collection.find_all().subscribe();
+    let _sub = collection.find_all().subscribe();
 
     let _lq: LiveQuery = collection.find_all().observe_local(event_handler)?;
     thread::spawn(move || {
         loop {
             button.wait_for_press(None);
-            println!("pressed!!");
-            if state {
+            debug!("Button Pressed");
+            let id = DocumentId::new(&"77".to_string()).unwrap();
+            let find_res = collection.find_by_id(id).exec();
+            let state_doc = match find_res {
+                Ok(doc) => doc.typed().unwrap(),
+                Err(_error) => State{_id: "77".to_string(), state: false},
+            };
+            debug!("DOC STATE {:?}", state_doc);
+            if state_doc.state {
                 let _res = collection.upsert(json!({"_id": "77", "state": false}));
-                state = false;
             } else {
                 let _res = collection.upsert(json!({"_id": "77", "state": true}));
-                state = true;
             }      
         }
     });
@@ -75,9 +79,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let v: State = doc.typed()?;
             info!("\tDocument State {:?}", v.state);
             if v._id == "77" {
-                // set state
-                state = v.state;
-                if state {
+                if v.state {
                     led.on();
                 } else {
                     led.off();
